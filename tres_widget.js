@@ -214,20 +214,47 @@
     closeBtn.addEventListener('click', toggleChat);
 
     // Send Message Logic
-    function sendMessage() {
-        const text = input.value.trim();
-        if (text === "") return;
+    async function sendMessage() {
+    const text = input.value.trim();
+    if (text === "") return;
 
-        // 1. Add User Message
-        addMessage(text, 'user');
-        input.value = "";
+    // 1. Add User Message
+    addMessage(text, 'user');
+    input.value = "";
 
-        // 2. Simulate AI Typing/Response (This is where you'd connect your API)
-        setTimeout(() => {
-            // Placeholder logic for now
-            addMessage("Searching knowledge base... Request processed.", 'bot');
-        }, 1000);
+    // 2. Show a "Thinking..." indicator
+    const typingMessage = addMessage("Lumi is thinking...", 'bot');
+
+    try {
+        // 3. Connect to your Render Backend
+        // Replace 'YOUR_RENDER_URL' with your actual link (e.g., https://my-agent.onrender.com)
+        const response = await fetch('https://trex-backend-09ab.onrender.com/api/support', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                message: text,
+                user: { name: "Guest", id: "123" }, // You can make this dynamic later
+                agent_id: "lumi2_support" // This tells the backend where to save the log!
+            })
+        });
+
+        if (!response.ok) throw new Error("Backend connection failed");
+
+        const data = await response.json();
+
+        // 4. Replace the "Thinking" text with the real AI answer
+        // Note: You might need to adjust your addMessage function to allow updating text
+        // Or simply remove the placeholder and add the new one:
+        removeMessage(typingMessage); // If you have a remove function
+        addMessage(data.reply, 'bot');
+
+    } catch (error) {
+        console.error("Error:", error);
+        addMessage("I'm sorry, I'm having trouble connecting to my brain right now.", 'bot');
     }
+}
 
     function addMessage(text, sender) {
         const msgDiv = document.createElement('div');
@@ -244,5 +271,6 @@
     });
 
     sendBtn.addEventListener('click', sendMessage);
+
 
 })();
