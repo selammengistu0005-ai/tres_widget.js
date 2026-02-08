@@ -228,7 +228,7 @@
     try {
         // 3. Connect to your Render Backend
         // Replace 'YOUR_RENDER_URL' with your actual link (e.g., https://my-agent.onrender.com)
-        const response = await fetch('https://trex-backend-09ab.onrender.com/api/support', {
+        const response = await fetch('https://tres-backend.onrender.com/api/support', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -274,3 +274,4 @@
 
 
 })();
+
