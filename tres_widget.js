@@ -223,7 +223,7 @@
     input.value = "";
 
     // 2. Show a "Thinking..." indicator
-    const typingMessage = addMessage("Lumi is thinking...", 'bot');
+    const typingMessage = addMessage("Tres is thinking...", 'bot');
 
     try {
         // 3. Connect to your Render Backend
@@ -274,4 +274,5 @@
 
 
 })();
+
 
