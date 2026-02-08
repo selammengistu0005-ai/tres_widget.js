@@ -198,12 +198,15 @@
     document.body.appendChild(div);
 
     // 3. JAVASCRIPT LOGIC
+    // 3. JAVASCRIPT LOGIC
     const launcher = document.getElementById('tres-launcher');
     const chatWindow = document.getElementById('tres-chat-window');
     const closeBtn = document.getElementById('tres-close');
-    const input = document.getElementById('tres-input');
-    const sendBtn = document.getElementById('tres-send-btn');
+    const input = document.getElementById('tres-input'); // Fixed ID
+    const sendBtn = document.getElementById('tres-send-btn'); // Fixed ID
     const messagesContainer = document.getElementById('tres-messages');
+
+    const BACKEND_URL = "https://tres-backend.onrender.com/api/support";
 
     // Toggle Open/Close
     function toggleChat() {
@@ -213,66 +216,59 @@
     launcher.addEventListener('click', toggleChat);
     closeBtn.addEventListener('click', toggleChat);
 
-    // Send Message Logic
-    // --- UPDATED JAVASCRIPT LOGIC ---
-
-    // Send Message Logic
     async function sendMessage() {
         const text = input.value.trim();
-        if (text === "") return;
+        if (!text) return;
 
-        // 1. Add User Message
+        // 1. Add User Message to UI
         addMessage(text, 'user');
-        input.value = "";
+        input.value = '';
 
-        // 2. Show a "Thinking..." indicator
-        const typingMessage = addMessage("Tres is thinking...", 'bot');
+        // 2. Add a temporary "Thinking..." message
+        const typingIndicator = addMessage("Thinking...", 'bot');
 
         try {
-            const response = await fetch('https://tres-backend.onrender.com/api/support', {
+            const res = await fetch(BACKEND_URL, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    message: text,
-                    user: { name: "Guest", id: "123" }
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    message: text, 
+                    user: { name: 'Guest', preferences: {} } 
                 })
             });
 
-            if (!response.ok) throw new Error("Backend connection failed");
+            if (!res.ok) throw new Error("Server error");
 
-            const data = await response.json();
-
-            // 3. Remove the "Thinking" text and add real reply
-            typingMessage.remove(); // Simple way to remove the element
+            const data = await res.json();
+            
+            // 3. Replace indicator with real reply
+            typingIndicator.remove();
             addMessage(data.reply, 'bot');
+            console.log("Detected Intent:", data.intent);
 
-        } catch (error) {
-            console.error("Error:", error);
-            typingMessage.remove(); 
-            addMessage("I'm sorry, I'm having trouble connecting to my brain right now.", 'bot');
+        } catch (err) {
+            console.error("Fetch Error:", err);
+            typingIndicator.remove();
+            addMessage("I'm having trouble connecting to Tres Support servers.", 'bot');
         }
     }
 
-    // Helper to create messages and return the element
+    // Helper to create messages
     function addMessage(text, sender) {
         const msgDiv = document.createElement('div');
         msgDiv.classList.add('tres-message', sender);
         msgDiv.textContent = text;
         messagesContainer.appendChild(msgDiv);
-        
-        // Scroll to bottom
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        return msgDiv; // Return the element so we can remove it later
+        return msgDiv;
     }
 
-    // Listen for Enter key
-    input.addEventListener('keypress', (e) => {
+    // Event Listeners
+    sendBtn.addEventListener('click', sendMessage);
+    input.addEventListener('keydown', (e) => { 
         if (e.key === 'Enter') {
-            e.preventDefault(); // Prevents any weird form issues
+            e.preventDefault();
             sendMessage();
         }
     });
-    sendBtn.addEventListener('click', sendMessage);
 })();
